@@ -6,11 +6,14 @@ Created on Sat Jan 20 13:43:27 2018
 """
 import numpy as np
 from HarmonyCore import HarmonyCore
+
 class objective_function:
+
     def __init__(self,
                  input_X, 
                  input_Y,
                  iteration = 10000,
+                 weight_decimal = 0,
                  sample_size = -1, 
                  hmcr_proba = 0.7, 
                  par_proba = 0.3, 
@@ -21,6 +24,7 @@ class objective_function:
         self.input_X = input_X
         self.input_Y = input_Y
         self.iteration = iteration
+        self.weight_decimal = weight_decimal
         if sample_size == -1:
             self.sample_size = len(input_X)
         else:
@@ -37,22 +41,20 @@ class objective_function:
         
 
 
-
     '''
-    Notic!!
-    My fitness func was DEFINE AS AVERAGE ERROR FITNESS.
-    The input_X was average vector. And input_Y was a double number.
-    And weight is a new weight vector.
-
-    You can customer yourself.
+    You should customize your fitness func here.
     '''
-    def fitness(self,weight):
+    def fitness(self,weight,input_X,input_Y):
         e = 0.0
-        input_X = np.mean(np.random.permutation(self.input_X)[:self.sample_size],axis=0)
-        input_Y = np.mean(np.random.permutation(self.input_Y)[:self.sample_size],axis=0)
+        #新產生的權重正規化
         weight = [float(i)/sum(weight) for i in weight]
-        e += sum(np.multiply(input_X,weight)) - input_Y
-        return abs(e)
+        #e += sum(np.multiply(input_X,weight)) - input_Y
+        for x,y in zip(input_X,input_Y):
+            #print('Compare',sum(np.multiply(x,weight)),y)
+            e += sum(np.multiply(x,weight)).round(0) != y
+        e /= np.array(input_X).shape[0]
+        #print(e)
+        return e
     
 
 if __name__ == '__main__':
@@ -62,24 +64,31 @@ if __name__ == '__main__':
     Load your data.(input_X & input_Y)
     input_X & input_Y both are matrix like this:
 
-    input_X:
-    [[ 0.123, 0.543, 0.87,-0.01 ],
-     [ 0.23 , 0.4  , 0.87,-0.01 ],
-     [-0.13 , 0.3  , 0.8 , 0.81 ],
-     [-0.53 , 0.3  , 0.18, 0.1  ]]
-
-    input_Y:
-    [[1],
+    input_X = [[ 1, 0, 0, 1 ],
+     [ 1 , 0, 0, 1 ],
+     [ 0 , 1, 1, 0 ],
+     [ 0 , 1, 1, 0 ],
+     [ 0 , 1, 1, 0 ],
+     [ 1 , 0, 0, 1 ]]
+    
+    input_Y = [[0],
+     [0],
+     [1],
      [1],
      [1],
      [0]]
+
     ''' 
-    input_X = [[ 0.123, 0.543, 0.87,-0.01 ],
-     [ 0.23 , 0.4  , 0.87,-0.01 ],
-     [-0.13 , 0.3  , 0.8 , 0.81 ],
-     [-0.53 , 0.3  , 0.18, 0.1  ]]
+    input_X = [[ 1, 0, 0, 1 ],
+     [ 1 , 0, 0, 1 ],
+     [ 0 , 1, 1, 0 ],
+     [ 0 , 1, 1, 0 ],
+     [ 0 , 1, 1, 0 ],
+     [ 1 , 0, 0, 1 ]]
     
-    input_Y = [[1],
+    input_Y = [[0],
+     [0],
+     [1],
      [1],
      [1],
      [0]]
@@ -89,10 +98,14 @@ if __name__ == '__main__':
     objective_function = objective_function("here your input_X","here your input_Y")
     here you can customer your parameter or not ( run as define ).
     For example:
-    up_down_limit = [[-1,1],[-1,1],[-1,1],[-1,1]]
+    up_down_limit = [[0,1],[0,1],[0,1],[0,1]]
     '''
-    up_down_limit = [[-1,1],[-1,1],[-1,1],[-1,1]]
-    objective_function = objective_function(input_X,input_Y,sample_size = 2,up_down_limit=up_down_limit)
+    up_down_limit = [[0,1],[0,1],[0,1],[0,1]]
+
+    '''
+    You can customize your in __init__ func or here.
+    '''
+    objective_function = objective_function(input_X,input_Y,sample_size = 6,weight_decimal=2,up_down_limit=up_down_limit)
     
 
     '''
